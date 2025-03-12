@@ -19,58 +19,36 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import se.magictechnology.pia13android12mars.ui.theme.Pia13android12marsTheme
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-        getpos()
+        var posviewmodel = PosViewModel()
+        posviewmodel.fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         enableEdgeToEdge()
 
         setContent {
             Pia13android12marsTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    KartScreen()
+                    KartScreen(posviewmodel)
                 }
             }
         }
 
-
+        requestPermissions()
     }
 
 
-    fun getpos() {
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // FAIL. Borde fråga permission?
-            requestPermissions()
-            return
-        }
-        fusedLocationClient.lastLocation
-            .addOnSuccessListener { location : Location? ->
-                // Got last known location. In some rare situations this can be null.
-                if(location == null) {
-                    Log.i("PIA13DEBUG", "NO LOCATION")
-                } else {
-                    Log.i("PIA13DEBUG", "LOCATION: ${location.latitude} ${location.longitude}")
-                }
-            }
-    }
+
 
     @RequiresApi(Build.VERSION_CODES.N)
     fun requestPermissions() {
@@ -80,11 +58,11 @@ class MainActivity : ComponentActivity() {
             when {
                 permissions.getOrDefault(android.Manifest.permission.ACCESS_FINE_LOCATION, false) -> {
                     // Precise location access granted.
-                    getpos()
+
                 }
                 permissions.getOrDefault(android.Manifest.permission.ACCESS_COARSE_LOCATION, false) -> {
                     // Only approximate location access granted.
-                    getpos()
+
                 }
                 else -> {
                     // No location access granted.
@@ -110,6 +88,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GreetingPreview() {
     Pia13android12marsTheme {
-        KartScreen()
+        KartScreen(viewModel())
     }
 }
